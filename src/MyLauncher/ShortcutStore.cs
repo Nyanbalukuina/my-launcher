@@ -308,7 +308,7 @@ internal sealed class ShortcutStore(string directory)
             }
 
             // 起動先には保存フォルダーで見つけた実ファイルパスを使う。
-            return original with { DisplayName = metadata.DisplayName };
+            return new ShortcutEntry(original.FilePath, metadata.DisplayName);
         }
         catch (FileNotFoundException)
         {

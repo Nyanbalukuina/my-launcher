@@ -18,7 +18,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<ShortcutEntry> _shortcuts = [];
     private readonly ShortcutStore _shortcutStore;
 
-    // 直前にマウスで押された項目を覚え、別の行への連続クリックと区別する。
+    // 直前にマウスで押された項目を覚え、別のアイコンへの連続クリックと区別する。
     private ShortcutEntry? _previousMouseEntry;
 
     // 【.NET標準】GetFolderPath と Path.Combine でユーザーごとの保存先を組み立てる。
@@ -121,7 +121,7 @@ public partial class MainWindow : Window
     // 【自作】同じ項目を左ダブルクリックしたときに起動する。
     private void OnShortcutMouseDown(object sender, MouseButtonEventArgs e)
     {
-        // 【WPF標準】ContainerFromElement でクリックされた要素を一覧の行に対応付ける。
+        // 【WPF標準】ContainerFromElement でクリックされた要素を一覧の項目に対応付ける。
         if (e.ChangedButton != MouseButton.Left || e.OriginalSource is not DependencyObject source
             || ItemsControl.ContainerFromElement(ShortcutList, source) is not ListBoxItem { DataContext: ShortcutEntry entry })
         {
@@ -224,6 +224,7 @@ public partial class MainWindow : Window
 
             // 【自作】ChangeTarget で登録コピーのリンク先を書き換える。
             _shortcutStore.ChangeTarget(entry, dialog.Target);
+            entry.RefreshIcon();
             ShowStatus($"「{entry.DisplayName}」のリンク先を変更しました。");
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or COMException or InvalidOperationException)
