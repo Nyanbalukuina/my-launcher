@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="AGENTS.md" />
+    <File Path="global.json" />
+    <File Path="自分専用のランチャーアプリ.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/MyLauncher/MyLauncher.csproj" />
   </Folder>

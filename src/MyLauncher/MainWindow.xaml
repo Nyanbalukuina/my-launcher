@@ -1,5 +1,60 @@
-<!-- ランチャーのメインウィンドウを定義する。 -->
+<!-- 【WPF標準】Window の DragOver と Drop を【自作】のイベント処理に結び付ける。 -->
 <Window x:Class="MyLauncher.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="My Launcher" Height="450" Width="800" />
+        Title="My Launcher" 
+        Height="900" 
+        Width="1200"
+        AllowDrop="True" 
+        DragOver="OnDragOver" 
+        Drop="OnDrop"
+>
+    <!-- 【WPF標準】右クリックした行の DataContext をメニュー項目へ渡し、Click を【自作】の処理に結び付ける。 -->
+    <Window.Resources>
+        <ContextMenu x:Key="ShortcutContextMenu"
+                     DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+            <MenuItem Header="削除" Click="OnDeleteShortcutClick" />
+            <MenuItem Header="パスを変更" Click="OnChangeTargetClick" />
+        </ContextMenu>
+    </Window.Resources>
+    <!-- 【WPF標準】透明な Grid で余白にもドロップできるようにする。 -->
+    <Grid Background="Transparent">
+        <!-- 【WPF標準】DockPanel で案内を上部に、一覧を残りの領域に置く。 -->
+        <DockPanel Margin="24">
+            <!-- 【WPF標準】StackPanel にドロップの案内と結果を縦に並べる。 -->
+            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                <TextBlock
+                    Text="ショートカット（.lnk、.url）をドロップして登録、ダブルクリックで起動"
+                    FontSize="20" 
+                    TextAlignment="Center" 
+                    TextWrapping="Wrap"
+                />
+                <TextBlock 
+                    x:Name="ShortcutStatus" 
+                    Margin="0,12,0,0"
+                    TextAlignment="Center" 
+                    TextWrapping="Wrap"
+                    AutomationProperties.LiveSetting="Polite" 
+                />
+            </StackPanel>
+            <!-- 【WPF標準】ListBox の入力イベントを【自作】の起動処理に結び付ける。 -->
+            <ListBox 
+                x:Name="ShortcutList" 
+                DisplayMemberPath="DisplayName" 
+                HorizontalContentAlignment="Stretch"
+                PreviewMouseDown="OnShortcutMouseDown" 
+                PreviewKeyDown="OnShortcutKeyDown"
+                AutomationProperties.Name="登録済みショートカット"
+            >
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Margin" Value="0,2" />
+                        <Setter Property="Padding" Value="8,6" />
+                        <!-- 【WPF標準】各行に右クリック用のメニューを割り当てる。 -->
+                        <Setter Property="ContextMenu" Value="{StaticResource ShortcutContextMenu}" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+        </DockPanel>
+    </Grid>
+</Window>
