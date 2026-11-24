@@ -17,9 +17,21 @@
         </Grid.ColumnDefinitions>
 
         <!-- 左側に登録済みのショートカット名を表示する。 -->
-        <ListBox Grid.Column="0"
-             x:Name="ShortcutList"
-             DisplayMemberPath="Name" />
+        <!-- 各項目で左ボタンを離したときに起動処理を呼ぶ。 -->
+        <ListBox 
+            Grid.Column       ="0"
+            x:Name            ="ShortcutList"
+            DisplayMemberPath ="Name"
+        >
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter 
+                        Event   ="MouseDoubleClick"
+                        Handler ="OnShortcutDoubleClick" 
+                    />
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
 
         <!-- 右側をメイン画面として使う。 -->
         <Grid Grid.Column="1" Background="Transparent" />

@@ -90,7 +90,6 @@ internal class LauncherStorage
     // 保存済みのショートカットを登録順に読み込む。
     public IReadOnlyList<ShortcutEntry> LoadShortcuts()
     {
-
         // 初回起動など、保存ファイルがまだなければ空の一覧を返す。
         if (!File.Exists(LauncherJsonPath))
         {
@@ -111,5 +110,24 @@ internal class LauncherStorage
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         }) ?? throw new JsonException("ショートカットの一覧を読み込めませんでした。");
+    }
+
+    // 管理フォルダー内にあるショートカットのフルパスを求める。
+    public string GetShortcutPath(string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath) || Path.IsPathRooted(relativePath))
+        {
+            throw new IOException("ショートカットの保存先が無効です。");
+        }
+
+        // パスを正規化して、shortcuts フォルダー内にあることを確認する。
+        string fullPath       = Path.GetFullPath(relativePath, DataFolder);
+        string shortcutFolder = Path.Combine(DataFolder, "shortcuts") + Path.DirectorySeparatorChar;
+        if (!fullPath.StartsWith(shortcutFolder, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new IOException("ショートカットの保存先が管理フォルダーの外にあります。");
+        }
+
+        return fullPath;
     }
 }

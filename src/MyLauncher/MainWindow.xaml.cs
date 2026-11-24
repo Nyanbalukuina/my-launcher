@@ -3,6 +3,10 @@ using System.Text.Json;
 using System.Windows;
 using MyLauncher.Services.Shortcut;
 using MyLauncher.Storage;
+using System.ComponentModel;
+using System.Windows.Controls;
+using System.Windows.Input;
+using MyLauncher.Models.Shortcut;
 
 namespace MyLauncher;
 
@@ -11,6 +15,7 @@ public partial class MainWindow : Window
 {
     private readonly RegistrationService _registrationService = new();
     private readonly LauncherStorage     _launcherStorage     = new();
+    private readonly LaunchService _launchService = new();
 
     // XAMLを初期化してから、保存済みの一覧を表示する。
     public MainWindow()
@@ -53,6 +58,26 @@ public partial class MainWindow : Window
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
             MessageBox.Show(this, ex.Message, "一覧を読み込めませんでした");
+        }
+    }
+
+    // クリックされた項目の登録情報を取得する。
+    private void OnShortcutDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not ListBoxItem { Content: ShortcutEntry entry })
+        {
+            return;
+        }
+
+        // 起動を依頼し、失敗した場合は項目名と理由を表示する。
+        try
+        {
+            _launchService.Launch(entry);
+        }
+        catch (Exception ex) when (
+            ex is IOException or UnauthorizedAccessException or ArgumentException or Win32Exception)
+        {
+            MessageBox.Show(this, $"{entry.Name}\n{ex.Message}", "ショートカットを起動できませんでした");
         }
     }
 }
