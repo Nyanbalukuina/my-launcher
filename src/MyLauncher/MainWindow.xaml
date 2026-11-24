@@ -8,4 +8,7 @@
     Width="800" 
     AllowDrop="True"
     Drop="OnDrop"
-/>
+>
+    <!-- 登録済みのショートカット名を一覧表示する。 -->
+    <ListBox x:Name="ShortcutList" DisplayMemberPath="Name" />
+</Window>
