@@ -80,4 +80,54 @@ public partial class MainWindow : Window
             MessageBox.Show(this, $"{entry.Name}\n{ex.Message}", "ショートカットを起動できませんでした");
         }
     }
+
+    // 修飾キー付きの右クリックなどでも、メニューを開いた項目を選択に含める。
+    private void OnShortcutMenuOpened(object sender, RoutedEventArgs e)
+    {
+        if (sender is ContextMenu { PlacementTarget: ListBoxItem { IsSelected: false } item })
+        {
+            ShortcutList.UnselectAll();
+            item.IsSelected = true;
+        }
+    }
+
+    // 選択したショートカットの削除を一度だけ確認する。
+    private void OnDeleteShortcuts(object sender, RoutedEventArgs e)
+    {
+        ShortcutEntry[] selected = ShortcutList.SelectedItems.OfType<ShortcutEntry>().ToArray();
+        if (selected.Length == 0)
+        {
+            return;
+        }
+
+        string message = selected.Length == 1
+            ? $"「{selected[0].Name}」を削除しますか？"
+            : $"選択した {selected.Length} 件を削除しますか？";
+
+        if (MessageBox.Show(this, message, "ショートカットの削除",
+                MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
+            != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        // 選択したIDをまとめて渡し、保存後の一覧を表示する。
+        try
+        {
+            string[] ids = selected.Select(entry => entry.Id).ToArray();
+            int cleanupFailures = _launcherStorage.DeleteShortcuts(ids);
+            RefreshShortcutList();
+
+            if (cleanupFailures > 0)
+            {
+                MessageBox.Show(this,
+                    $"一覧から削除しましたが、保存フォルダーの後片付けに {cleanupFailures} 件失敗しました。",
+                    "ショートカットの削除");
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            MessageBox.Show(this, ex.Message, "削除できませんでした");
+        }
+    }
 }
