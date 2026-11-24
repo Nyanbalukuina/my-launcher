@@ -82,12 +82,53 @@ public partial class MainWindow : Window
     }
 
     // 修飾キー付きの右クリックなどでも、メニューを開いた項目を選択に含める。
+    // メニューを開いた項目と現在の選択状態をそろえる。
     private void OnShortcutMenuOpened(object sender, RoutedEventArgs e)
     {
-        if (sender is ContextMenu { PlacementTarget: ListBoxItem { IsSelected: false } item })
+        if (sender is not ContextMenu menu)
+        {
+            return;
+        }
+
+        if (menu.PlacementTarget is ListBoxItem { IsSelected: false } item)
         {
             ShortcutList.UnselectAll();
             item.IsSelected = true;
+        }
+
+        // 選択がちょうど1件のときだけ名前を変更できる。
+        MenuItem? renameItem = menu.Items.OfType<MenuItem>()
+            .FirstOrDefault(item => Equals(item.Tag, "Rename"));
+        if (renameItem is not null)
+        {
+            renameItem.IsEnabled = ShortcutList.SelectedItems.Count == 1;
+        }
+    }
+
+    // 選択中の1件について新しい表示名を入力してもらう。
+    private void OnRenameShortcut(object sender, RoutedEventArgs e)
+    {
+        if (ShortcutList.SelectedItems.Count != 1
+            || ShortcutList.SelectedItem is not ShortcutEntry entry)
+        {
+            return;
+        }
+
+        var dialog = new RenameShortcutWindow(entry.Name) { Owner = this };
+        if (dialog.ShowDialog() != true || dialog.NewName == entry.Name)
+        {
+            return;
+        }
+
+        // 表示名を保存し、一覧に反映する。
+        try
+        {
+            _launcherStorage.RenameShortcut(entry.Id, dialog.NewName);
+            RefreshShortcutList();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            MessageBox.Show(this, ex.Message, "名前を変更できませんでした");
         }
     }
 

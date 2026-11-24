@@ -1,0 +1,21 @@
+<!-- ショートカットの表示名を入力するダイアログ。 -->
+<Window x:Class="MyLauncher.RenameShortcutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ショートカットの名前を変更"
+        Width="360"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="16">
+        <Label Content="表示名" Target="{Binding ElementName=NameTextBox}" />
+        <TextBox x:Name="NameTextBox" />
+
+        <!-- Enterで確定し、Escでキャンセルできる。 -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="OK" Width="80" IsDefault="True" Click="OnConfirm" />
+            <Button Content="キャンセル" Width="80" IsCancel="True" Margin="8,0,0,0" />
+        </StackPanel>
+    </StackPanel>
+</Window>

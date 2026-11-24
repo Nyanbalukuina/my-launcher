@@ -12,7 +12,8 @@
     <!-- 一覧項目で使う右クリックメニューを定義する。 -->
     <Window.Resources>
         <ContextMenu x:Key="ShortcutContextMenu" Opened="OnShortcutMenuOpened">
-            <MenuItem Header="Rename" IsEnabled="False" />
+            <!-- メニューを開いたときに、選択件数で有効・無効を切り替える。 -->
+            <MenuItem Header="Rename" Tag="Rename" IsEnabled="False" Click="OnRenameShortcut" />
             <MenuItem Header="Delete" Click="OnDeleteShortcuts" />
         </ContextMenu>
     </Window.Resources>

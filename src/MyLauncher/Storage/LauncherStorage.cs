@@ -274,4 +274,61 @@ internal class LauncherStorage
             Directory.Delete(entryFolder);
         }
     }
+
+    // 最新の登録一覧から対象を探し、表示名を更新する。
+    public void RenameShortcut(string id, string newName)
+    {
+        // 読み込みから書き込みまで、登録・削除と同じロックを使う。
+        using var saveLock = new FileStream(
+            LauncherJsonPath + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+
+        JsonObject launcher = JsonNode.Parse(File.ReadAllText(LauncherJsonPath)) as JsonObject
+            ?? throw new JsonException("launcher.json の形式が正しくありません。");
+
+        if (launcher["entries"] is not JsonArray entries)
+        {
+            throw new JsonException("launcher.json に entries 配列がありません。");
+        }
+
+        // 同じ表示名の項目があっても、IDで対象を特定する。
+        JsonObject? entry = entries.OfType<JsonObject>().FirstOrDefault(item =>
+            item["id"] is JsonValue idValue
+            && idValue.TryGetValue<string>(out var savedId)
+            && string.Equals(savedId, id, StringComparison.Ordinal));
+
+        if (entry is null)
+        {
+            throw new IOException("変更するショートカットが見つかりません。");
+        }
+
+        entry["name"] = newName;
+        SaveLauncher(launcher);
+    }
+
+    // 一時ファイルに書き込んでから、正式なJSONを置き換える。
+    private void SaveLauncher(JsonObject launcher)
+    {
+        string temporaryPath = Path.Combine(DataFolder, $"launcher-{Guid.NewGuid():N}.tmp");
+
+        try
+        {
+            File.WriteAllText(temporaryPath, launcher.ToJsonString(
+                new JsonSerializerOptions { WriteIndented = true }));
+            File.Move(temporaryPath, LauncherJsonPath, overwrite: true);
+        }
+        catch
+        {
+            // 保存に失敗したら、一時ファイルを片付ける。
+            try
+            {
+                File.Delete(temporaryPath);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // 片付けに失敗した場合も、最初の保存エラーを呼び出し元に伝える。
+            }
+
+            throw;
+        }
+    }
 }
